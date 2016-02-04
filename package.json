@@ -1,0 +1,20 @@
+{
+  "name": "nodejs-api-starter",
+  "version": "0.0.1",
+  "description": "NodeJS, Express, Mongoose API starter",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Adam Tibballs",
+  "license": "GNU",
+  "dependencies": {
+    "body-parser": "^1.14.2",
+    "express": "^4.13.4",
+    "mongoose": "^4.4.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tbblls/nodejs-api-starter.git"
+  },
+}

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+
+  <h1>Example page</h1>
+
+  <p id="test">Results can be viewed in the console.</p>
+
+  <script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+  <script>
+    $(document).ready(function() {
+
+
+      var employer = {
+        name: "DSS",
+        description: "Department of Social Services"
+      };
+
+      var employee = {
+        name : "Adam " + Date.now(),
+        role : "Frontend Dev",
+        manager : "Evan",
+        employerId : ""
+      };
+
+      $.post('http://localhost:3009/employers', employer)
+        .then(function(data) {
+          console.log('Add new employer', data._id);
+          employeeAll.employerId = data._id;
+          return {
+            id: data._id
+          };
+        })
+        .then(function(obj) {
+
+          $.post('http://localhost:3009/employees', employee)
+          .then(function(data){
+            console.log('add employee', data);
+            return obj;
+          })
+          .then(function(obj) {
+            $.ajax('http://localhost:3009/employers/' + obj.id)
+              .then(function(data) {
+                console.log('get the data', data);
+              });
+          });
+
+        });
+
+
+      $.ajax('http://localhost:3009/employers')
+        .then(function(data) {
+          console.log(data);
+        });
+
+
+    });
+  </script>
+</body>
+
+</html>
