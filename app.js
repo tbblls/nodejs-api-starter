@@ -7,6 +7,7 @@ var express = require("express"),
 
 // Initialise mongoose schemas (not sure this is the best place?)
 require('./models/employer');
+require('./models/device');
 
 //Allow CORS
 app.use(function(req, res, next) {

@@ -4,7 +4,8 @@ var mongoose = require('mongoose');
 var employeeSchema = mongoose.Schema({
     name             : String,
     role             : String,
-    manager          : String
+    manager          : String,
+    employerId       : String
 });
 
 // create the model and expose it to our app

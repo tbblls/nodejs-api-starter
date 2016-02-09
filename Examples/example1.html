@@ -11,48 +11,90 @@
   <script>
     $(document).ready(function() {
 
+      var Employer = (function(){
+        var api = {};
 
-      var employer = {
-        name: "DSS",
-        description: "Department of Social Services"
-      };
+        var ACCESSCODE = "ah7a08sdvh34hofc349834cdj";
 
-      var employee = {
-        name : "Adam " + Date.now(),
-        role : "Frontend Dev",
-        manager : "Evan",
-        employerId : ""
-      };
+        function Employer(){
+            this.name = "";
+            this.description = "";
+        }
+        function Employee(){
+          name = "";
+          role = "";
+          manager = "";
+          employerId = "";
+        }
 
-      $.post('http://localhost:3009/employers', employer)
-        .then(function(data) {
-          console.log('Add new employer', data._id);
-          employeeAll.employerId = data._id;
-          return {
-            id: data._id
-          };
-        })
-        .then(function(obj) {
-
-          $.post('http://localhost:3009/employees', employee)
-          .then(function(data){
-            console.log('add employee', data);
-            return obj;
-          })
-          .then(function(obj) {
-            $.ajax('http://localhost:3009/employers/' + obj.id)
-              .then(function(data) {
-                console.log('get the data', data);
-              });
+        api.newEmployer =  function(name, description){
+          return Object.create(Employer,{
+            name: { writable: true,  configurable:true, value: name, enumerable: true },
+            description: { writable: true,  configurable:true, value: description, enumerable: true }
           });
+        };
+        api.newEmployee =  function(name, role, manager, employerId){
+          return Object.create(Employee,{
+            name: { writable: true,  configurable:true, value: name, enumerable: true },
+            role: { writable: true,  configurable:true, value: role, enumerable: true },
+            manager: { writable: true,  configurable:true, value: manager, enumerable: true },
+            employerId: { writable: true,  configurable:true, value: employerId, enumerable: true }
+          });
+        };
 
+        api.add = function(employer){
+          return $.post('http://localhost:3009/employers?accesscode='  + ACCESSCODE, employer);
+        };
+
+        api.addEmployee = function(employee){
+          return $.post('http://localhost:3009/employees?accesscode='  + ACCESSCODE, employee);
+        };
+
+        api.get = function(id){
+          return $.ajax('http://localhost:3009/employers/' + id + '/?accesscode=' + ACCESSCODE);
+        };
+
+        api.getAll = function(){
+          return $.ajax('http://localhost:3009/employers?accesscode=' + ACCESSCODE);
+        };
+
+        return api;
+      }());
+
+      // Create a new Employer
+      var employer =  Employer.newEmployer("DSS", "Department of Social Services");
+
+      // Save employer to database
+      var savedEmployer = Employer.add(employer)
+        .then(function(data){
+          console.log("Saved employer", data);
+          // Create a new Employee
+          var employee =  Employer.newEmployee("James", "Frontend DEV", "Evan", data._id);
+          // Save Employee
+          Employer.addEmployee(employee)
+            .then(function(data){
+              console.log("Saved employee", data);
+              // Get Employer from dataabase
+              Employer.get(data.employerId)
+              .then(function(data){
+                console.log("employerFromDb", data);
+              });
+            })
+            .fail(function(e){
+              console.log("Saved employee error", e);
+            });
         });
 
 
-      $.ajax('http://localhost:3009/employers')
-        .then(function(data) {
-          console.log(data);
-        });
+
+
+      // Get all Employers from database
+      /*var employers = Employer.getAll()
+      .then(function(data){
+        console.log("employers", data);
+      });*/
+
+
 
 
     });

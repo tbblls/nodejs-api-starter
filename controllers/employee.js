@@ -1,48 +1,28 @@
 var mongoose = require('mongoose');
 var Employee = mongoose.model('Employee');
 var Employer = mongoose.model('Employer');
+var Helper = require('../helpers/modelHelpers');
 
 exports.add = function(req, res) {
   if (req.body) {
-    var employee = new Employee();
-    console.log('add employee', req.body);
-    // Add values to model
-    employee.name = req.body.name;
-    employee.role = req.body.role;
-    employee.manager = req.body.manager;
-    employee.employerId = req.body.employerId;
+    var employer, savedEmployee;
+    var employee = Helper.populate(new Employee(), req.body);
 
-    // get the employer
-    Employer.findOne({
-        '_id': employee.employerId
-      })
-      .exec(function(err, savedEmployer) {
-        if (err) {
-          throw err;
-        }
-        console.log('found the employer',savedEmployer);
-        if (savedEmployer) {
-          // Save to database
-          employee.save(function(err, savedEmployee) {
-            if (err) {
-              res.send({
-                error: "An error has occured while attempting to add your record."
-              });
-            }
-
-            savedEmployer.employees.push(savedEmployee);
-            savedEmployer.save(function(err, data) {
-              if (err) {
-                throw err;
-              }
-              return res.send(savedEmployee);
-            });
-
-          });
-        }
-
-      });
-
+    Helper.findOne(Employer, {
+      '_id': employee.employerId
+    },'')
+    .then(function(data){
+      employer =  data;
+      return Helper.save(employee);
+    })
+    .then(function(employee){
+      savedEmployee = employee;
+      employer.employees.push(employee);
+      return Helper.save(employer);
+    })
+    .then(function(data){
+      res.send(savedEmployee);
+    });
 
   } else {
     res.send({
@@ -53,27 +33,33 @@ exports.add = function(req, res) {
 };
 
 exports.get = function(req, res) {
-  Employee.findOne({
+  Helper.findOne(Employee, {
       '_id': req.params.id
-    })
-    .exec(function(err, result) {
-      if (err) {
-        throw err;
+    }, 'employees')
+    .then(function(results) {
+      if (results) {
+        res.send(results);
       }
-      res.send(result);
+    })
+    .catch(function(err) {
+      res.send({
+        error: "An error has occured while attempting to retrieve your record."
+      });
     });
 };
 
 exports.getAll = function(req, res) {
-  var query = Employee.find();
-  query.exec(function(err, docs) {
-    if (err) {
+  Helper.find(Employee, '')
+    .then(function(results) {
+      if (results) {
+        res.send(results);
+      }
+    })
+    .catch(function(err) {
       res.send({
-        error: "An error has occured while attempting to retrieve your records."
+        error: "An error has occured while attempting to retrieve your record."
       });
-    }
-    res.send(docs);
-  });
+    });
 
 };
 

@@ -1,39 +1,25 @@
 var mongoose = require('mongoose');
 var Employer = mongoose.model('Employer');
+var Helper = require('../helpers/modelHelpers');
+
 
 exports.add = function(req, res) {
   if (req.body) {
-    var employer = new Employer();
-
-    // Add values to model
-    employer.name = req.body.name;
-    employer.description = req.body.description;
+    var employer = Helper.populate(new Employer(), req.body);
 
     // Validation should go here
     // Employer name must be unique so check for existing before saving.
 
-    Employer.findOne({
+    Helper.findOne(Employer, {
         'name': employer.name
+      },'employees')
+      .then(function(data) {
+        return data ? data : Helper.save(employer);
       })
-      .exec(function(err, result) {
-        if (err) {
-          throw err;
-        }
-
-        if (result) {
-          res.send(result);
-        } else {
-          // Save to database
-          employer.save(function(err, data) {
-            if (err) {
-              res.send({
-                error: "An error has occured while attempting to add your record."
-              });
-            }
-            res.send(data);
-          });
-        }
+      .then(function(data) {
+        res.send(data);
       });
+
   } else {
     res.send({
       message: "Request body not defined."
@@ -43,29 +29,35 @@ exports.add = function(req, res) {
 };
 
 exports.get = function(req, res) {
-  Employer.findOne({
+
+  Helper.findOne(Employer, {
       '_id': req.params.id
-    })
-    .populate('employees')
-    .exec(function(err, result) {
-      if (err) {
-        throw err;
+    }, 'employees')
+    .then(function(results) {
+      if (results) {
+        res.send(results);
       }
-      res.send(result);
+    })
+    .catch(function(err) {
+      res.send({
+        error: "An error has occured while attempting to retrieve your record."
+      });
     });
+
 };
 
 exports.getAll = function(req, res) {
-  var query = Employer.find();
-  query.exec(function(err, docs) {
-    if (err) {
+  Helper.find(Employer, 'employees')
+    .then(function(results) {
+      if (results) {
+        res.send(results);
+      }
+    })
+    .catch(function(err) {
       res.send({
-        error: "An error has occured while attempting to retrieve your records."
+        error: "An error has occured while attempting to retrieve your record."
       });
-    }
-    res.send(docs);
-  });
-
+    });
 };
 
 exports.update = function(req, res) {
